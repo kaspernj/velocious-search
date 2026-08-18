@@ -33,10 +33,18 @@ Backend resources opt in once through their shared base resource:
 ```js
 import SearchableResource from "velocious-search/searchable-resource"
 
+/**
+ * @template {typeof import("velocious/build/src/database/record/index.js").default} [TModelClass=typeof import("velocious/build/src/database/record/index.js").default]
+ * @augments {SearchableResource<TModelClass>}
+ */
 export default class BaseResource extends SearchableResource {
   // Existing application authorization and resource helpers stay here.
 }
 ```
+
+`SearchableResource` preserves the consuming resource base's generic backend
+model type, so typed methods such as `authorizedQuery()` continue returning the
+application's concrete record class.
 
 Root attributes exposed by a resource are searchable automatically. Relationship
 searches inspect related rows outside the root resource's authorization scope, so
