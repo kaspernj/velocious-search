@@ -1,0 +1,7 @@
+build/
+dist/
+node_modules/
+*.tgz
+spec/dummy/.expo/
+spec/dummy/node_modules/
+tmp/

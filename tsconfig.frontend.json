@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": [
+    "src/apply-search.js",
+    "src/components/**/*.jsx",
+    "src/filter-contract.js",
+    "src/search-catalog.js",
+    "types/**/*.d.ts"
+  ]
+}
