@@ -1,6 +1,6 @@
 {
   "name": "velocious-search",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Reusable relationship-aware filtering for Velocious applications.",
   "type": "module",
   "exports": {
