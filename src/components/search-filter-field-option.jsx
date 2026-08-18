@@ -15,6 +15,7 @@ const styles = createStyleCache()
 /**
  * @typedef {object} SearchFilterFieldOptionProps
  * @property {import("../search-catalog.js").SearchCatalogField} field - Catalog field represented by this option.
+ * @property {string} label - Translated catalog field label.
  * @property {(field: import("../search-catalog.js").SearchCatalogField) => void} onSelect - Selection callback.
  * @property {boolean} selected - Whether this field is currently selected.
  * @property {string} testID - Stable selector base.
@@ -26,6 +27,7 @@ const styles = createStyleCache()
 const SearchFilterFieldOption = memo(shapeComponent(/** @augments {ShapeComponent<SearchFilterFieldOptionProps, SearchFilterFieldOptionState>} */ class SearchFilterFieldOption extends ShapeComponent {
   static propTypes = propTypesExact({
     field: PropTypes.object.isRequired,
+    label: PropTypes.string.isRequired,
     onSelect: PropTypes.func.isRequired,
     selected: PropTypes.bool.isRequired,
     testID: PropTypes.string.isRequired
@@ -57,7 +59,7 @@ const SearchFilterFieldOption = memo(shapeComponent(/** @augments {ShapeComponen
           }}
           testID={`${this.p.testID}/label`}
         >
-          {this.p.field.label}
+          {this.p.label}
         </Text>
       </Pressable>
     )

@@ -9,12 +9,14 @@ and validates the catalog on the backend before applying the filter to the
 already-authorized Velocious index query.
 
 `SearchFilter` also requires an explicit `searchableFields` allowlist. This keeps
-computed attributes and backend-forbidden relationship paths out of the editor;
-the backend remains authoritative and validates every submitted condition.
+computed attributes and backend-forbidden relationship paths out of the editor.
+The backend remains authoritative: the root resource must independently declare
+the same attribute paths through `searchableFields()`.
 
 Initial safeguards:
 
 - only attributes declared by the target frontend-model resource are searchable;
+- every attribute path must be explicitly listed by the root resource's `searchableFields()` method;
 - searchable values are scalar JSON values, with scalar arrays reserved for `in` and `not_in`;
 - every traversed relationship must be declared by its source resource;
 - related paths must be explicitly listed by the root resource's `searchableRelationshipPaths()` method;
@@ -28,5 +30,6 @@ Initial safeguards:
 
 Root-record authorization remains owned by the consuming resource. Related-row
 authorization is not automatically applied to SQL joins, so applications should
-only list a relationship path in `searchableRelationshipPaths()` when its related
-rows are safe to use without an additional authorization scope.
+only list a related field in `searchableFields()` and its relationship path in
+`searchableRelationshipPaths()` when those related rows are safe to use without
+an additional authorization scope.

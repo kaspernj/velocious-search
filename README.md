@@ -23,10 +23,14 @@ const searchableFields = [
   onFilterChange={onFilterChange}
   searchableFields={searchableFields}
   testID="buildGroupSearchFilter"
+  translate={translate}
 />
 
 const buildGroups = await applySearch(BuildGroup.all(), filter).toArray()
 ```
+
+`translate` is optional and receives every built-in control, predicate, and
+generated catalog label. Omit it when English identity labels are appropriate.
 
 Backend resources opt in once through their shared base resource:
 
@@ -46,12 +50,20 @@ export default class BaseResource extends SearchableResource {
 model type, so typed methods such as `authorizedQuery()` continue returning the
 application's concrete record class.
 
-Root attributes exposed by a resource are searchable automatically. Relationship
-searches inspect related rows outside the root resource's authorization scope, so
-each root resource must explicitly allow the safe paths it needs:
+Every resource must explicitly allow the safe root and relationship fields it
+needs. Relationship searches also inspect related rows outside the root
+resource's authorization scope, so relationship paths require a second explicit
+opt-in:
 
 ```js
 export default class BuildGroupResource extends BaseResource {
+  static searchableFields() {
+    return [
+      {attribute: "name", path: []},
+      {attribute: "name", path: ["builds"]}
+    ]
+  }
+
   static searchableRelationshipPaths() {
     return [["builds"]]
   }
@@ -59,9 +71,9 @@ export default class BuildGroupResource extends BaseResource {
 ```
 
 Only database-backed attributes can be searched. Polymorphic, through, and
-cross-database relationship paths are rejected. `searchableFields` is an
-explicit frontend allowlist and should mirror the database-backed attributes
-and related paths approved by the backend resources.
+cross-database relationship paths are rejected. The `SearchFilter`
+`searchableFields` prop is presentation metadata and should mirror the backend
+resource's authoritative `searchableFields()` declaration.
 
 `SearchFilter` edits flat root conditions. The filter contract supports nested
 groups for programmatic clients, but the component rejects nested groups it

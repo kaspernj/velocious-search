@@ -44,6 +44,17 @@ class SearchResourceRootModel {
 }
 
 class SearchResource extends SearchableResource {
+  static searchableFields() {
+    return [
+      {attribute: "id", path: []},
+      {attribute: "displayLabel", path: []},
+      {attribute: "id", path: ["builds"]},
+      {attribute: "name", path: ["builds"]},
+      {attribute: "secret", path: ["builds"]},
+      {attribute: "email", path: ["builds", "owner"]}
+    ]
+  }
+
   static searchableRelationshipPaths() {
     return [["builds"], ["builds", "owner"]]
   }
@@ -232,20 +243,19 @@ describe("searchable resource", () => {
       [SearchResourceRootModel, {attributes: ["id"], relationships: ["builds"]}],
       [SearchResourceBuildModel, {attributes: ["id"], relationships: []}]
     ]))
-    const query = searchQuery()
     const rootFilter = filterWithCondition({attribute: "id", path: ["builds"], predicate: "eq", value: "id"})
     const nestedFilter = filterWithCondition({attribute: "email", path: ["builds", "owner"], predicate: "eq", value: "user@example.com"})
 
     expect(() => searchableResource(rootForbiddenController).applyFrontendModelIndexSearch({
       controller: rootForbiddenController,
-      query,
+      query: searchQuery(),
       search: {column: "__velociousSearch", operator: "eq", path: [], value: rootFilter}
-    })).toThrowError(VelociousError)
+    })).toThrowError(VelociousError, /Relationship SearchResourceRootModel#builds is not searchable/)
     expect(() => searchableResource(nestedForbiddenController).applyFrontendModelIndexSearch({
       controller: nestedForbiddenController,
-      query,
+      query: searchQuery(),
       search: {column: "__velociousSearch", operator: "eq", path: [], value: nestedFilter}
-    })).toThrowError(VelociousError)
+    })).toThrowError(VelociousError, /Relationship SearchResourceBuildModel#owner is not searchable/)
   })
 
   it("rejects attributes not declared by the target resource", () => {
@@ -261,11 +271,33 @@ describe("searchable resource", () => {
       controller,
       query,
       search: {column: "__velociousSearch", operator: "eq", path: [], value: filter}
-    })).toThrowError(VelociousError)
+    })).toThrowError(VelociousError, /Attribute SearchResourceBuildModel#secret is not searchable/)
+  })
+
+  it("rejects exposed root attributes outside the resource search allowlist", () => {
+    const controller = controllerWithConfigurations(new Map([
+      [SearchResourceRootModel, {attributes: ["buildsName", "id"], relationships: ["builds"]}]
+    ]))
+    const resource = searchableResource(controller)
+    const query = searchQuery()
+
+    expect(() => resource.applyFrontendModelIndexSearch({
+      controller,
+      query,
+      search: {
+        column: "__velociousSearch",
+        operator: "eq",
+        path: [],
+        value: filterWithCondition({attribute: "buildsName", path: [], predicate: "cont", value: "private"})
+      }
+    })).toThrowError(VelociousError, /Field buildsName is not searchable/)
+    expect(query.ransack).not.toHaveBeenCalled()
   })
 
   it("rejects related paths that the root resource did not explicitly opt into", () => {
-    class RootOnlySearchResource extends SearchableResource {}
+    class RootOnlySearchResource extends SearchableResource {
+      static searchableFields() { return [{attribute: "name", path: ["builds"]}] }
+    }
 
     const controller = controllerWithConfigurations(new Map([
       [SearchResourceRootModel, {attributes: ["id"], relationships: ["builds"]}],
@@ -288,7 +320,7 @@ describe("searchable resource", () => {
         path: [],
         value: filterWithCondition({attribute: "name", path: ["builds"], predicate: "cont", value: "api"})
       }
-    })).toThrowError(VelociousError)
+    })).toThrowError(VelociousError, /Relationship path builds is not searchable/)
   })
 
   it("rejects a compiled Ransack attribute that resolves to a different path", () => {
@@ -306,7 +338,7 @@ describe("searchable resource", () => {
         path: [],
         value: filterWithCondition({attribute: "name", path: ["builds"], predicate: "cont", value: "api"})
       }
-    })).toThrowError(VelociousError)
+    })).toThrowError(VelociousError, /Velocious Search filter does not resolve to searchable database attributes/)
   })
 
   it("rejects exposed attributes that are not database-backed Ransack attributes", () => {
@@ -323,7 +355,7 @@ describe("searchable resource", () => {
         path: [],
         value: filterWithCondition({attribute: "displayLabel", path: [], predicate: "cont", value: "api"})
       }
-    })).toThrowError(VelociousError)
+    })).toThrowError(VelociousError, /Velocious Search filter does not resolve to searchable database attributes/)
   })
 
   it("rejects polymorphic, through, and cross-database relationship paths", () => {
@@ -342,6 +374,7 @@ describe("searchable resource", () => {
         static getRelationshipsMap() { return {builds: relationship} }
       }
       class UnsupportedSearchResource extends SearchableResource {
+        static searchableFields() { return [{attribute: "name", path: ["builds"]}] }
         static searchableRelationshipPaths() { return [["builds"]] }
       }
 
@@ -366,7 +399,7 @@ describe("searchable resource", () => {
           path: [],
           value: filterWithCondition({attribute: "name", path: ["builds"], predicate: "cont", value: "api"})
         }
-      })).toThrowError(VelociousError)
+      })).toThrowError(VelociousError, /Relationship UnsupportedRootModel#builds is not searchable/)
     }
   })
 

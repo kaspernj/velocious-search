@@ -24,9 +24,10 @@ class SearchFilterBuildGroup {
 /**
  * @param {import("../src/filter-contract.js").SearchFilter} filter - Filter prop.
  * @param {jasmine.Spy} onFilterChange - Change callback.
+ * @param {(message: string) => string} [translate] - Display translation callback.
  * @returns {import("react").ReactElement} - Search filter element.
  */
-function searchFilterElement(filter, onFilterChange) {
+function searchFilterElement(filter, onFilterChange, translate) {
   return createElement(SearchFilter, {
     filter,
     modelClass: /** @type {import("velocious/build/src/frontend-models/base.js").FrontendModelClass} */ (SearchFilterBuildGroup),
@@ -37,7 +38,8 @@ function searchFilterElement(filter, onFilterChange) {
       {attribute: "id", path: ["builds"]},
       {attribute: "name", path: ["builds"]}
     ],
-    testID: "buildGroupSearchFilter"
+    testID: "buildGroupSearchFilter",
+    translate
   })
 }
 
@@ -94,6 +96,23 @@ describe("search filter", () => {
 
     expect(onFilterChange).not.toHaveBeenCalled()
     expect((await view.findByTestId("buildGroupSearchFilter/validationError")).textContent).toMatch(/value/i)
+  })
+
+  it("translates controls and generated field labels through the consumer callback", async () => {
+    const view = render(searchFilterElement(
+      emptySearchFilter(),
+      jasmine.createSpy("onFilterChange"),
+      (message) => `Translated ${message}`
+    ))
+
+    expect(view.getByTestId("buildGroupSearchFilter/combinator/and/label").textContent).toBe("Translated Match all")
+    expect(view.getByTestId("buildGroupSearchFilter/addCondition/label").textContent).toBe("Translated + Add condition")
+
+    fireEvent.click(view.getByTestId("buildGroupSearchFilter/addCondition"))
+
+    expect((await view.findByTestId("buildGroupSearchFilter/condition/0/field/label")).textContent).toBe("Translated Id")
+    expect(view.getByTestId("buildGroupSearchFilter/condition/0/predicate/label").textContent).toBe("Translated equals")
+    expect(view.getByTestId("buildGroupSearchFilter/condition/0/remove/label").textContent).toBe("Translated Remove")
   })
 
   it("renders only explicitly allowed catalog fields", async () => {

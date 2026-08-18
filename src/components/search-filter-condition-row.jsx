@@ -43,6 +43,7 @@ const predicateLabels = {
  * @property {(change: import("./search-filter.jsx").SearchFilterDraftConditionChange) => void} onChange - Draft change callback.
  * @property {(index: number) => void} onRemove - Remove callback.
  * @property {string} testID - Stable selector base.
+ * @property {(message: string) => string} translate - Consumer translation callback.
  */
 
 /**
@@ -59,7 +60,8 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
     index: PropTypes.number.isRequired,
     onChange: PropTypes.func.isRequired,
     onRemove: PropTypes.func.isRequired,
-    testID: PropTypes.string.isRequired
+    testID: PropTypes.string.isRequired,
+    translate: PropTypes.func.isRequired
   })
 
   /** @type {SearchFilterConditionRowState} */
@@ -97,7 +99,7 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
     const condition = this.p.condition
     /** @type {import("../search-catalog.js").SearchCatalogField[]} */
     const fields = this.p.fields
-    const {testID} = this.p
+    const {testID, translate} = this.p
     const selectedField = fields.find((field) => (
       field.attribute === condition.attribute &&
       field.path.length === condition.path.length &&
@@ -147,7 +149,7 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
               style={styles.fieldButtonLabel ||= {color: "#0f172a", fontSize: 14, fontWeight: "600"}}
               testID={`${testID}/field/label`}
             >
-              {selectedField.label}
+              {translate(selectedField.label)}
             </Text>
           </Pressable>
           <Pressable
@@ -168,7 +170,7 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
               style={styles.predicateButtonLabel ||= {color: "#0f172a", fontSize: 14}}
               testID={`${testID}/predicate/label`}
             >
-              {predicateLabels[condition.predicate]}
+              {translate(predicateLabels[condition.predicate])}
             </Text>
           </Pressable>
           {condition.predicate === "null" ?
@@ -189,7 +191,7 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
                 style={styles.nullValueButtonLabel ||= {color: "#0f172a", fontSize: 14}}
                 testID={`${testID}/nullValue/label`}
               >
-                {condition.valueText === "true" ? "Yes" : "No"}
+                {condition.valueText === "true" ? translate("Yes") : translate("No")}
               </Text>
             </Pressable>
             :
@@ -197,7 +199,7 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
               defaultValue={condition.valueText}
               multiline={condition.predicate === "in" || condition.predicate === "not_in"}
               onChangeText={this.tt.onValueChangeText}
-              placeholder={condition.predicate === "in" || condition.predicate === "not_in" ? "One value per line" : "Value"}
+              placeholder={condition.predicate === "in" || condition.predicate === "not_in" ? translate("One value per line") : translate("Value")}
               style={styles.valueInput ||= {
                 backgroundColor: "#ffffff",
                 borderColor: "#94a3b8",
@@ -230,7 +232,7 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
               style={styles.removeButtonLabel ||= {color: "#be123c", fontSize: 14, fontWeight: "600"}}
               testID={`${testID}/remove/label`}
             >
-              Remove
+              {translate("Remove")}
             </Text>
           </Pressable>
         </View>
@@ -243,6 +245,7 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
               <SearchFilterFieldOption
                 field={field}
                 key={`${field.path.join(".")}:${field.attribute}`}
+                label={translate(field.label)}
                 onSelect={this.tt.onFieldSelect}
                 selected={field === selectedField}
                 testID={`${testID}/fieldOption/${index}`}
@@ -262,7 +265,7 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
             {SEARCH_PREDICATES.map((predicate) =>
               <SearchFilterPredicateOption
                 key={predicate}
-                label={predicateLabels[predicate]}
+                label={translate(predicateLabels[predicate])}
                 onSelect={this.tt.onPredicateSelect}
                 predicate={predicate}
                 selected={predicate === condition.predicate}
