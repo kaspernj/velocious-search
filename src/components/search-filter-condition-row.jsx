@@ -2,11 +2,12 @@
 
 /** @import {NamedExoticComponent, ReactNode} from "react" */
 
-import {memo} from "react"
+import {memo, useEffect} from "react"
 import PropTypes from "prop-types"
 import propTypesExact from "prop-types-exact"
 import Pressable from "react-native-propforge/pressable"
 import {createStyleCache} from "react-native-propforge/style-cache"
+import {Platform} from "react-native"
 import Text from "react-native-propforge/text"
 import TextInput from "react-native-propforge/text-input"
 import View from "react-native-propforge/view"
@@ -65,6 +66,29 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
   state = {
     fieldOptionsOpen: false,
     predicateOptionsOpen: false
+  }
+
+  /** @type {import("react-native").TextInput | {value: string} | null} */
+  valueInput = null
+
+  /** @type {string} */
+  valueText = this.props.condition.valueText
+
+  /** @returns {void} - Synchronizes externally replaced filter values. */
+  setup() {
+    useEffect(() => {
+      if (this.valueText === this.p.condition.valueText) return
+
+      this.valueText = this.p.condition.valueText
+
+      if (!this.valueInput) return
+
+      if (Platform.OS === "web") {
+        /** @type {{value: string}} */ (this.valueInput).value = this.valueText
+      } else {
+        /** @type {import("react-native").TextInput} */ (this.valueInput).setNativeProps({text: this.valueText})
+      }
+    }, [this.p.condition.valueText])
   }
 
   /** @returns {ReactNode} - Editable condition row. */
@@ -170,6 +194,7 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
             </Pressable>
             :
             <TextInput
+              defaultValue={condition.valueText}
               multiline={condition.predicate === "in" || condition.predicate === "not_in"}
               onChangeText={this.tt.onValueChangeText}
               placeholder={condition.predicate === "in" || condition.predicate === "not_in" ? "One value per line" : "Value"}
@@ -184,8 +209,8 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
                 paddingHorizontal: 10,
                 paddingVertical: 8
               }}
+              ref={this.tt.onValueInputRef}
               testID={`${testID}/value`}
-              value={condition.valueText}
             />
           }
           <Pressable
@@ -334,6 +359,7 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
    * @returns {void}
    */
   onValueChangeText = (valueText) => {
+    this.valueText = valueText
     this.p.onChange({
       condition: {
         attribute: this.p.condition.attribute,
@@ -344,6 +370,11 @@ const SearchFilterConditionRow = memo(shapeComponent(/** @augments {ShapeCompone
       },
       index: this.p.index
     })
+  }
+
+  /** @param {import("react-native").TextInput | {value: string} | null} valueInput - Current native or web input. */
+  onValueInputRef = (valueInput) => {
+    this.valueInput = valueInput
   }
 
   /** @returns {void} - Removes this condition. */
