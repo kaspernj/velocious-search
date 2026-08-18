@@ -12,7 +12,11 @@ import {
 
 const packageSearchQueries = new WeakSet()
 
-/** Backend resource base that understands velocious-search descriptors. */
+/**
+ * Backend resource base that understands velocious-search descriptors.
+ * @template {typeof import("velocious/build/src/database/record/index.js").default} [TModelClass=typeof import("velocious/build/src/database/record/index.js").default]
+ * @augments {FrontendModelBaseResource<TModelClass>}
+ */
 export default class SearchableResource extends FrontendModelBaseResource {
   /**
    * Declares relationship paths whose unscoped related rows may affect root search results.

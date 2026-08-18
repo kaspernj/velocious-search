@@ -42,7 +42,7 @@
     "release:patch": "release-patch",
     "test": "TSX_TSCONFIG_PATH=tsconfig.frontend.json node --import tsx --import ./spec/react-test-runtime.js ./node_modules/jasmine/bin/jasmine.js",
     "test:package-entrypoints": "npm run build && npm test -- spec/package-entrypoints-check.js",
-    "typecheck": "tsc --project tsconfig.frontend.json --noEmit && tsc --project tsconfig.backend.json --noEmit"
+    "typecheck": "tsc --project tsconfig.frontend.json --noEmit && tsc --project tsconfig.backend-typecheck.json"
   },
   "repository": {
     "type": "git",

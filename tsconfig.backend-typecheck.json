@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.backend.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": [
+    "spec/typecheck/**/*.js",
+    "src/filter-contract.js",
+    "src/searchable-resource.js"
+  ]
+}
