@@ -19,6 +19,14 @@ const packageSearchQueries = new WeakSet()
  */
 export default class SearchableResource extends FrontendModelBaseResource {
   /**
+   * Declares attribute paths whose values may be used to filter root records.
+   * @returns {Array<{attribute: string, path: string[]}>} - Explicitly searchable fields.
+   */
+  static searchableFields() {
+    return []
+  }
+
+  /**
    * Declares relationship paths whose unscoped related rows may affect root search results.
    * @returns {string[][]} - Explicitly searchable relationship paths.
    */
@@ -108,9 +116,20 @@ export default class SearchableResource extends FrontendModelBaseResource {
   validateConditionExposure({condition, controller}) {
     let modelClass = /** @type {typeof import("velocious/build/src/database/record/index.js").default} */ (this.modelClass())
     let traversesHasMany = false
+    const ResourceClass = /** @type {typeof SearchableResource} */ (this.constructor)
+    const fieldAllowed = ResourceClass.searchableFields().some((searchableField) => (
+      searchableField.attribute === condition.attribute &&
+      searchableField.path.length === condition.path.length &&
+      searchableField.path.every((relationshipName, index) => relationshipName === condition.path[index])
+    ))
+
+    if (!fieldAllowed) {
+      throw VelociousError.safe(`Field ${[...condition.path, condition.attribute].join(".")} is not searchable.`, {
+        code: "velocious-search-forbidden-filter"
+      })
+    }
 
     if (condition.path.length > 0) {
-      const ResourceClass = /** @type {typeof SearchableResource} */ (this.constructor)
       const pathAllowed = ResourceClass.searchableRelationshipPaths().some((searchablePath) => (
         searchablePath.length === condition.path.length &&
         searchablePath.every((relationshipName, index) => relationshipName === condition.path[index])

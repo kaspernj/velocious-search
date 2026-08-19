@@ -20,6 +20,12 @@ import SearchFilterConditionRow from "./search-filter-condition-row.js"
 const styles = createStyleCache()
 
 /**
+ * @param {string} message - Untranslated fallback message.
+ * @returns {string} - Original message.
+ */
+const identityTranslate = (message) => message
+
+/**
  * @typedef {object} SearchFilterDraftCondition
  * @property {string} attribute - Selected catalog attribute.
  * @property {boolean | number | string | Array<boolean | number | string>} [originalValue] - Unedited typed value.
@@ -48,6 +54,7 @@ const styles = createStyleCache()
  * @property {(filter: import("../filter-contract.js").SearchFilter) => void} onFilterChange - Applied filter callback.
  * @property {Array<{attribute: string, path: string[]}>} searchableFields - Backend-approved searchable field targets.
  * @property {string} testID - Stable selector base.
+ * @property {(message: string) => string} [translate] - Consumer translation callback.
  */
 
 /**
@@ -67,7 +74,8 @@ const SearchFilter = memo(shapeComponent(/** @augments {ShapeComponent<SearchFil
       attribute: PropTypes.string.isRequired,
       path: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired
     }).isRequired).isRequired,
-    testID: PropTypes.string.isRequired
+    testID: PropTypes.string.isRequired,
+    translate: PropTypes.func
   })
 
   /** @type {SearchFilterState} */
@@ -99,6 +107,7 @@ const SearchFilter = memo(shapeComponent(/** @augments {ShapeComponent<SearchFil
   render() {
     const {catalog} = this.tt
     const {testID} = this.p
+    const translate = this.p.translate ?? identityTranslate
 
     return (
       <View
@@ -145,7 +154,7 @@ const SearchFilter = memo(shapeComponent(/** @augments {ShapeComponent<SearchFil
                 }}
                 testID={`${testID}/combinator/and/label`}
               >
-                Match all
+                {translate("Match all")}
               </Text>
             </Pressable>
             <Pressable
@@ -167,7 +176,7 @@ const SearchFilter = memo(shapeComponent(/** @augments {ShapeComponent<SearchFil
                 }}
                 testID={`${testID}/combinator/or/label`}
               >
-                Match any
+                {translate("Match any")}
               </Text>
             </Pressable>
           </View>
@@ -193,7 +202,7 @@ const SearchFilter = memo(shapeComponent(/** @augments {ShapeComponent<SearchFil
               }}
               testID={`${testID}/addCondition/label`}
             >
-              + Add condition
+              {translate("+ Add condition")}
             </Text>
           </Pressable>
         </View>
@@ -202,7 +211,7 @@ const SearchFilter = memo(shapeComponent(/** @augments {ShapeComponent<SearchFil
             style={styles.emptyCatalog ||= {color: "#64748b", fontSize: 14}}
             testID={`${testID}/emptyCatalog`}
           >
-            This model has no searchable fields.
+            {translate("This model has no searchable fields.")}
           </Text>
         }
         <View
@@ -218,6 +227,7 @@ const SearchFilter = memo(shapeComponent(/** @augments {ShapeComponent<SearchFil
               onChange={this.tt.onConditionChange}
               onRemove={this.tt.onConditionRemove}
               testID={`${testID}/condition/${index}`}
+              translate={translate}
             />
           )}
         </View>
@@ -245,7 +255,7 @@ const SearchFilter = memo(shapeComponent(/** @augments {ShapeComponent<SearchFil
             style={styles.applyButtonLabel ||= {color: "#ffffff", fontSize: 14, fontWeight: "700"}}
             testID={`${testID}/apply/label`}
           >
-            Apply filters
+            {translate("Apply filters")}
           </Text>
         </Pressable>
       </View>
