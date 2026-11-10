@@ -1,4 +1,20 @@
+# Path filter: ordered gitignore-style rules, last match wins. `**` keeps the
+# whole repository in scope so a directory added later runs this build by
+# default; the quoted `!` rules carve out only the paths `npm run all-checks`
+# cannot observe (documentation and release fragments are not linted, compiled
+# or executed by any check in this lane).
+#
+# `tensorbuzz.yml` is deliberately not listed: TensorBuzz runs every build when
+# the config file itself changes, so an edit here can never skip the builds it
+# just changed.
 before_script:
   - npm install
+paths:
+  - "**"
+  - "!AGENTS.md"
+  - "!LICENSE"
+  - "!README.md"
+  - "!changelog.d/**"
+  - "!docs/**"
 script:
   - npm run all-checks
